@@ -71,7 +71,7 @@ app.use("/api/targets", targetRoutes);
 
 // Base route
 app.get("/", (req, res) => {
-  res.send("API is CRM MINICOW running...");
+  res.send("API is CRM Sales provider running...");
 });
 
 app.get("/health", (req, res) => {
