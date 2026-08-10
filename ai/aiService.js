@@ -69,7 +69,7 @@ const qualificationSchema = z.object({
     .describe(
       "Your reply text to the user. Provide comprehensive answers and guide the user naturally without forcing unnecessary questions.",
     ),
-  qualification: z
+  qualification: z.object({
       serviceType: z
         .string()
         .default("")
