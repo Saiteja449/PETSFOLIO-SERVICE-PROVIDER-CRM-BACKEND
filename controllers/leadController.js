@@ -109,8 +109,8 @@ export const getPaginatedLeads = async (req, res) => {
         } else if (tab === "UpcomingFollowup") {
           q.status = { $regex: new RegExp("^follow up$", "i") };
           q.nextFollowUp = { $gt: todayStr };
-        } else if (tab === "Converted") {
-          q.status = { $regex: new RegExp("^converted$", "i") };
+        } else if (tab === "Joined") {
+          q.status = { $regex: new RegExp("^joined$", "i") };
         } else if (tab === "Lost") {
           q.status = {
             $in: [
@@ -191,9 +191,9 @@ export const getPaginatedLeads = async (req, res) => {
             },
             { $count: "count" },
           ],
-          Converted: [
+          Joined: [
             {
-              $match: { status: { $regex: new RegExp("^converted$", "i") } },
+              $match: { status: { $regex: new RegExp("^joined$", "i") } },
             },
             { $count: "count" },
           ],
@@ -220,7 +220,7 @@ export const getPaginatedLeads = async (req, res) => {
       TodayFollowup: facetCounts[0].TodayFollowup[0]?.count || 0,
       UpcomingFollowup: facetCounts[0].UpcomingFollowup[0]?.count || 0,
       NotAttended: facetCounts[0].NotAttended[0]?.count || 0,
-      Converted: facetCounts[0].Converted[0]?.count || 0,
+      Joined: facetCounts[0].Joined[0]?.count || 0,
       Lost: facetCounts[0].Lost[0]?.count || 0,
     };
 
@@ -403,8 +403,8 @@ export const updateStatusByWebhook = async (req, res) => {
     }
 
     let status = "";
-    if (event === "converted") {
-      status = "Converted";
+    if (event === "joined") {
+      status = "Joined";
     } else {
       return res
         .status(400)
@@ -434,8 +434,8 @@ export const updateStatusByWebhook = async (req, res) => {
       });
     }
 
-    // Prevent reverting status back to previous stages (e.g. from "Converted" back to "New")
-    const funnelOrder = ["New", "Converted"];
+    // Prevent reverting status back to previous stages (e.g. from "Joined" back to "New")
+    const funnelOrder = ["New", "Joined"];
     const currentRank = funnelOrder.indexOf(lead.status);
     const targetRank = funnelOrder.indexOf(status);
 

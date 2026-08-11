@@ -244,7 +244,7 @@ export const testAI = async (req, res) => {
         lead = await Lead.create({
           name: "Test User",
           phone: "0000000000",
-          service: "General Enquiry",
+          providerService: "General Enquiry",
           source: "Manual Entry",
         });
       }

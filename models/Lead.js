@@ -27,12 +27,7 @@ const leadSchema = new mongoose.Schema(
     },
     service: {
       type: String,
-      enum: [
-        "walking",
-        "training",
-        "grooming",
-        "sitting",
-      ],
+      enum: ["walking", "training", "grooming", "sitting"],
       required: true,
       default: "walking",
     },
@@ -53,7 +48,7 @@ const leadSchema = new mongoose.Schema(
         "Not Responding",
         "Not Attended",
         "Price Issue",
-        "Converted",
+        "Joined",
         "Active",
         "Closed Won",
         "Policy Active",
@@ -66,8 +61,8 @@ const leadSchema = new mongoose.Schema(
     },
     providerService: {
       type: String,
-      enum: ["Pet Sitter", "Dog Walker", "Groomer", "Trainer", ""],
-      default: "",
+      enum: ["Pet Sitter", "Dog Walker", "Groomer", "Trainer", "General Enquiry", ""],
+      default: "General Enquiry",
     },
     nextFollowUp: {
       type: String, // Kept as string to easily map to HTML date input format "YYYY-MM-DD"

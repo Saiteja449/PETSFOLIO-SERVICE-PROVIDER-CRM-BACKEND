@@ -86,7 +86,7 @@ export const receiveMetaWebhook = async (req, res) => {
               phone: phone,
               email: email,
               city: city,
-              service: "General Enquiry", // Can be mapped to specific form if needed
+              providerService: "General Enquiry", // Can be mapped to specific form if needed
               notes: `Lead from Meta Ads (Form ID: ${formId})`,
               source: "Meta Ads",
               status: "New",
