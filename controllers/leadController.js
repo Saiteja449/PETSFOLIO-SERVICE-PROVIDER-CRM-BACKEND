@@ -476,6 +476,107 @@ export const updateStatusByWebhook = async (req, res) => {
   }
 };
 
+export const receiveCrmLeadWebhook = async (req, res) => {
+  try {
+    const { name, phone, email, city, source, notes, service } = req.body;
+
+    const errors = [];
+    if (!name || name.trim() === "") errors.push("Name is required");
+    if (!phone || phone.trim() === "") errors.push("Phone number is required");
+
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, errors });
+    }
+
+    const cleanPhone = phone.replace(/\D/g, "");
+    const last10Digits = cleanPhone.slice(-10);
+
+    const existingLead = await Lead.findOne({
+      $or: [{ phone: cleanPhone }, { phone: new RegExp(last10Digits + "$") }],
+    });
+
+    if (existingLead) {
+      return res.status(400).json({
+        success: false,
+        message: "A lead with this phone number already exists.",
+      });
+    }
+
+    const mapService = (incomingService) => {
+      if (!incomingService) return "walking";
+      const s = incomingService.toLowerCase();
+      if (s.includes("walk")) return "walking";
+      if (s.includes("train")) return "training";
+      if (s.includes("groom")) return "grooming";
+      if (s.includes("sit")) return "sitting";
+      return "walking";
+    };
+
+    // If service is not explicitly provided, try to infer from notes
+    let inferredService = service;
+    if (!inferredService && notes) {
+      if (notes.toLowerCase().includes("groom")) inferredService = "grooming";
+      else if (notes.toLowerCase().includes("train")) inferredService = "training";
+      else if (notes.toLowerCase().includes("sit")) inferredService = "sitting";
+      else if (notes.toLowerCase().includes("walk")) inferredService = "walking";
+    }
+
+    const leadData = {
+      name: name,
+      phone: cleanPhone,
+      email: email || "",
+      city: city || "",
+      service: mapService(inferredService),
+      notes: notes || "No notes provided",
+      source: source || "External CRM",
+      status: "New",
+      assignedTo: "Unassigned",
+      joinedAt: new Date(),
+    };
+
+    const reps = await User.find({ role: "sales person" }).sort({ _id: 1 });
+    if (reps && reps.length > 0) {
+      let state = await AssignmentState.findOne({ key: "leadAssignment" });
+      if (!state) {
+        state = await AssignmentState.create({
+          key: "leadAssignment",
+          lastAssignedIndex: -1,
+        });
+      }
+
+      let nextIndex = state.lastAssignedIndex + 1;
+      if (nextIndex >= reps.length) {
+        nextIndex = 0;
+      }
+
+      leadData.assignedTo = reps[nextIndex].name;
+      state.lastAssignedIndex = nextIndex;
+      await state.save();
+    }
+
+    const lead = await Lead.create(leadData);
+
+    const assignedUser = await User.findOne({ name: lead.assignedTo });
+    const targetUsers = assignedUser ? [assignedUser._id] : [];
+
+    await Notification.create({
+      title: "New CRM Lead Received",
+      message: `Lead ${lead.name} received from ${lead.source} and assigned to ${lead.assignedTo}.`,
+      type: "new_lead",
+      targetRoles: ["sales manager"],
+      targetUsers: targetUsers,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "CRM Lead received and created successfully.",
+      leadId: lead._id,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const analyzeRecording = async (req, res) => {
   try {
     const { id, recordingId } = req.params;

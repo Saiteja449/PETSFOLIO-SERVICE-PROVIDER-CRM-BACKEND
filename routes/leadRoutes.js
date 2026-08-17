@@ -9,6 +9,7 @@ import {
   updateLead,
   deleteLead,
   updateStatusByWebhook,
+  receiveCrmLeadWebhook,
   analyzeRecording,
 } from "../controllers/leadController.js";
 
@@ -34,6 +35,7 @@ router.route("/").get(getLeads).post(upload.single("recording"), createLead);
 router.route("/paginated").get(getPaginatedLeads);
 
 router.post("/webhook/status", updateStatusByWebhook);
+router.post("/webhook/crm-lead", receiveCrmLeadWebhook);
 
 router.route("/:id").put(upload.single("recording"), updateLead).delete(deleteLead);
 router.post("/:id/analyze-recording/:recordingId", analyzeRecording);
